@@ -122,6 +122,27 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy" "ecs_task_execution_secrets" {
+  name = "${var.project_name}-ecs-task-execution-secrets-policy"
+  role = aws_iam_role.ecs_task_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          data.aws_secretsmanager_secret.mongodb_uri.arn,
+          aws_secretsmanager_secret.app_config.arn
+        ]
+      }
+    ]
+  })
+}
+
 # Task Role
 resource "aws_iam_role" "ecs_task" {
   name = "${var.project_name}-ecs-task-role"
@@ -296,7 +317,61 @@ resource "aws_sns_topic" "alerts" {
 }
 
 # ============================================================================
-# APPLICATION LOAD BALANCER (NO SECURITY GROUPS)
+# SECURITY GROUPS
+# ============================================================================
+
+# ALB Security Group - allow HTTP from internet
+resource "aws_security_group" "alb" {
+  name        = "${var.project_name}-alb-sg"
+  description = "Allow HTTP inbound from internet"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-alb-sg"
+  }
+}
+
+# ECS Tasks Security Group - allow traffic from ALB on port 8080
+resource "aws_security_group" "ecs_tasks" {
+  name        = "${var.project_name}-ecs-tasks-sg"
+  description = "Allow inbound from ALB on port 8080"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-ecs-tasks-sg"
+  }
+}
+
+# ============================================================================
+# APPLICATION LOAD BALANCER
 # ============================================================================
 
 resource "aws_lb" "main" {
@@ -304,6 +379,7 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   subnets            = aws_subnet.public[*].id
+  security_groups    = [aws_security_group.alb.id]
 
   enable_deletion_protection = var.environment == "production"
   enable_http2               = true
@@ -393,7 +469,7 @@ resource "aws_s3_bucket_policy" "alb_logs" {
 }
 
 # ============================================================================
-# ECS SERVICE (NO SECURITY GROUPS)
+# ECS SERVICE
 # ============================================================================
 
 resource "aws_ecs_service" "app" {
@@ -406,6 +482,7 @@ resource "aws_ecs_service" "app" {
   network_configuration {
     subnets          = aws_subnet.public[*].id
     assign_public_ip = true
+    security_groups  = [aws_security_group.ecs_tasks.id]
   }
 
   load_balancer {
