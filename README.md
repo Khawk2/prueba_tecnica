@@ -13,6 +13,32 @@
 
 API reactiva de gestión de franquicias desarrollada con Spring WebFlux, MongoDB y Arquitectura Limpia. Demuestra habilidades de desarrollo backend incluyendo programación reactiva, diseño guiado por dominio, contenerización e infrastructure as code.
 
+### Despliegue en AWS
+
+La aplicación se encuentra desplegada en **AWS ECS Fargate** con las siguientes características:
+
+| Recurso | Detalle |
+|---------|--------|
+| **Compute** | AWS ECS Fargate (0.25 vCPU, 512 MB RAM) |
+| **Balanceador** | Application Load Balancer (HTTP puerto 80) |
+| **Base de Datos** | MongoDB Atlas (cloud) |
+| **Región** | us-east-1 |
+| **Contenedores** | AWS ECR + Docker |
+| **Secretos** | AWS Secrets Manager |
+| **Logs** | AWS CloudWatch Logs |
+| **Auto Scaling** | 1-2 tareas (CPU/Memory target 80%) |
+
+**URL de la API desplegada:**
+
+```
+http://franchises-api-1585613032.us-east-1.elb.amazonaws.com
+```
+
+**Endpoints principales en producción:**
+- Health Check: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/actuator/health`
+- API Base: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/api/v1`
+- Franquicias: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/api/v1/franchises`
+
 ---
 
 ## Stack Tecnológico
@@ -79,6 +105,8 @@ docker-compose up -d
 ```
 
 API disponible en: `http://localhost:8080`
+
+**Producción (AWS):** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com`
 
 ---
 
@@ -212,7 +240,24 @@ mvn clean test jacoco:report
 
 ## Infraestructura
 
-### Terraform (AWS)
+### Despliegue AWS (Producción)
+
+La infraestructura está desplegada en AWS usando Terraform y se encuentra activa:
+
+| Servicio AWS | Recurso | Estado |
+|-------------|---------|--------|
+| **VPC** | 10.0.0.0/16 con 2 subnets públicas | Activo |
+| **ECS Cluster** | franchises-api (Fargate) | Activo |
+| **ALB** | franchises-api-1585613032.us-east-1.elb.amazonaws.com | Activo |
+| **ECR** | Repositorio de imágenes Docker | Activo |
+| **Secrets Manager** | MongoDB URI + App Config | Activo |
+| **CloudWatch** | Logs y métricas del servicio | Activo |
+| **S3** | Logs del ALB | Activo |
+| **Auto Scaling** | CPU/Memory target tracking | Activo |
+
+**URL de acceso:** http://franchises-api-1585613032.us-east-1.elb.amazonaws.com
+
+### Terraform (IaC)
 ```bash
 cd terraform
 terraform init
@@ -221,11 +266,16 @@ terraform apply
 ```
 
 **Provisiona:**
-- VPC con subnets públicas y privadas
+- VPC con subnets públicas (2 AZs para ALB)
 - ECS Fargate para contenedores
-- Application Load Balancer
-- ECR Repository
-- ElastiCache Redis (opcional)
+- Application Load Balancer (HTTP)
+- ECR Repository con scan on push
+- Secrets Manager para credenciales
+- CloudWatch Logs (retención 14 días)
+- S3 Bucket para ALB access logs
+- Auto Scaling (1-2 tareas por CPU/Memory)
+- SNS Topic para alertas
+- IAM Roles para ECS task execution y task role
 
 ### Soporte Docker
 - Dockerfile multi-stage
