@@ -25,8 +25,8 @@ spring:
         max-wait-time: 2000
     # Redis - Config present (disabled via app.features.redis=false)
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       timeout: 100ms
 
   # JWT - REQUERIDO (@NotBlank en JwtProperties)
@@ -60,6 +60,9 @@ server:
 
 # Management
 management:
+  health:
+    redis:
+      enabled: false  # Redis deshabilitado en prod, no verificar health
   endpoints:
     web:
       exposure:
