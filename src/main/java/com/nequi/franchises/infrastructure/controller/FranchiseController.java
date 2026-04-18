@@ -7,6 +7,7 @@ import com.nequi.franchises.application.dto.UpdateNameDto;
 import com.nequi.franchises.application.service.FranchiseCommandService;
 import com.nequi.franchises.application.service.FranchiseQueryService;
 import com.nequi.franchises.application.service.TopProductReportService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1/franchises")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Franchises", description = "Gestión de franquicias - Crear, consultar y actualizar franquicias")
 public class FranchiseController {
 
     private final FranchiseCommandService commandService;

@@ -4,6 +4,7 @@ import com.nequi.franchises.application.dto.BranchDto;
 import com.nequi.franchises.application.dto.CreateBranchRequest;
 import com.nequi.franchises.application.dto.UpdateNameDto;
 import com.nequi.franchises.application.service.BranchService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1/franchises/{franchiseId}/branches")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Branches", description = "Gestión de sucursales - Crear y consultar sucursales de una franquicia")
 public class BranchController {
 
     private final BranchService branchService;

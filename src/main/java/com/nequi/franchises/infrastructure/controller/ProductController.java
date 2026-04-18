@@ -5,6 +5,7 @@ import com.nequi.franchises.application.dto.ProductDto;
 import com.nequi.franchises.application.dto.UpdateNameDto;
 import com.nequi.franchises.application.dto.UpdateStockRequest;
 import com.nequi.franchises.application.service.ProductService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Products", description = "Gestión de productos - Crear, actualizar stock, eliminar productos")
 public class ProductController {
 
     private final ProductService productService;
