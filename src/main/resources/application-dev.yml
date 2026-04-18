@@ -1,0 +1,63 @@
+# ============================================================================
+# SPRING PROFILE: DEV (Local Development)
+# ============================================================================
+# CONFIGURACIÓN CON FALLBACKS DOCUMENTADOS
+#
+# PRINCIPIO: Los fallbacks están documentados y son solo para desarrollo.
+# En producción NO existen fallbacks (fail-fast inmediato).
+#
+# FALLBACKS ACEPTADOS:
+#   - MongoDB: localhost:27017
+#   - JWT: secret de desarrollo (NO usar en producción)
+#
+# @ConfigurationProperties aplica validaciones @NotBlank/@Min
+# pero con fallbacks que permiten desarrollo sin configuración.
+# ============================================================================
+
+spring:
+  # ROOT CAUSE FIX: MongoDB y Redis deben estar en el mismo bloque 'data:'
+  # YAML no permite claves duplicadas en el mismo nivel
+  data:
+    # MongoDB - Desarrollo (fallback a localhost)
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/franchises}
+      connection-pool:
+        min-size: 2
+        max-size: 10
+        max-wait-time: 5000
+    # Redis - Habilitado en desarrollo (Docker local)
+    # Spring Boot 3 usa spring.data.redis (no spring.redis)
+    redis:
+      host: ${REDIS_HOST:redis}  # Nombre del servicio en docker-compose
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  # JWT - Desarrollo (fallback a secret de prueba)
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-secret-not-for-production}
+      expiration: 900000
+      refresh-expiration: 604800000
+
+# App Properties
+app:
+  profile: dev
+  features:
+    redis: true       # Habilitado en local
+    cache: true       # Caché habilitada
+    metrics: true
+    rate-limiting: true  # IMPORTANTE: Habilitar rate limiting para que se cree el bean
+  server:
+    port: 8080
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.nequi: DEBUG
+
+# Server
+server:
+  port: 8080
+  error:
+    include-message: always

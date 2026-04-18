@@ -1,0 +1,73 @@
+# ============================================================================
+# SPRING BOOT - BASE CONFIGURATION
+# ============================================================================
+# Este archivo contiene configuración común a TODOS los perfiles.
+# 
+# CONFIGURACIÓN:
+#   - application-dev.yml  -> Desarrollo local
+#   - application-prod.yml -> Producción AWS ECS
+#
+# PERFILES:
+#   Dev:   SPRING_PROFILES_ACTIVE=dev
+#   Prod:  SPRING_PROFILES_ACTIVE=prod
+#
+# PROPIEDADES INMUTABLES:
+#   - @ConfigurationProperties en paquete config.properties
+#   - Validación automática con @Validated
+#   - Fail-fast si faltan propiedades requeridas
+# ============================================================================
+
+spring:
+  application:
+    name: franchises-api
+
+  # Perfil activo (definido por infraestructura, no detectado)
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  # Validación de propiedades (fail-fast)
+  boot:
+    validation:
+      enabled: true
+
+# App properties (inmutables)
+app:
+  profile: ${SPRING_PROFILES_ACTIVE:dev}
+  features:
+    redis: false
+    cache: false
+    metrics: true
+  server:
+    port: 8080
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# Resilience4j
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30000
+        permittedNumberOfCallsInHalfOpenState: 5
+    instances:
+      default:
+        baseConfig: default
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1000
+        exponentialBackoffMultiplier: 2

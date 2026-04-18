@@ -1,0 +1,107 @@
+# ============================================================================
+# SPRING PROFILE: LOCAL (Pure Local Development - NO Docker)
+# ============================================================================
+# Este perfil está diseñado para ejecución 100% local sin dependencias externas.
+# 
+# REQUISITOS:
+#   - Java 17+
+#   - Maven 3.8+
+#   - MongoDB local (ver README-LOCAL.md para instalación)
+#
+# CARACTERÍSTICAS:
+#   - Redis: Deshabilitado (rate limiting pasa a modo local/no-op)
+#   - MongoDB: localhost:27017 con fallback automático
+#   - Seguridad: JWT opcional (puede obtenerse token o usar dev bypass)
+#   - Logs: DEBUG detallado para troubleshooting
+#
+# USO:
+#   mvn spring-boot:run -Dspring-boot.run.profiles=local
+#   # o
+#   SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+# ============================================================================
+
+spring:
+  # Consistent structure: all datastores under spring.data
+  data:
+    # MongoDB - Local development (fallback a localhost)
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/franchises}
+      connection-pool:
+        min-size: 1
+        max-size: 5
+        max-wait-time: 3000
+    # Redis - Config present but disabled via app.features.redis=false
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 1000ms
+
+  # JWT - Desarrollo local (fallback a secret de prueba)
+  # Para testing local, puedes usar cualquier secret
+  security:
+    jwt:
+      secret: ${JWT_SECRET:local-dev-secret-not-for-production-use-only}
+      expiration: 900000  # 15 minutos
+      refresh-expiration: 604800000  # 7 días
+
+# Configuración específica para modo local
+app:
+  profile: local
+  features:
+    redis: false       # Deshabilitado: no requiere Redis local
+    cache: false       # Deshabilitado: no requiere Redis local  
+    metrics: true      # Habilitado: métricas básicas en /actuator
+    rate-limiting: false  # Deshabilitado: Redis no disponible
+  server:
+    port: ${SERVER_PORT:8080}
+
+# Logging detallado para troubleshooting local
+logging:
+  level:
+    root: INFO
+    com.nequi: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.mongodb.driver: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Server configuration
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Actuator - Exponer más endpoints para debugging local
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,configprops,loggers
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  health:
+    defaults:
+      enabled: true
+    diskspace:
+      enabled: true
+
+# Resilience4j - Configuración más permisiva para desarrollo local
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 80
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+    instances:
+      default:
+        baseConfig: default
+  retry:
+    configs:
+      default:
+        maxAttempts: 2
+        waitDuration: 500

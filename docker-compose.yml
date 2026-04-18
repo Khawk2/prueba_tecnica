@@ -1,0 +1,111 @@
+# ============================================================================
+# DOCKER COMPOSE - AWS ECS PRODUCTION MODE
+# ============================================================================
+# Este archivo está configurado para producción en AWS usando:
+# - MongoDB Atlas (externo, cloud)
+# - Redis deshabilitado (comentado - opcional en AWS)
+# - Sin servicios locales de base de datos
+#
+# REQUISITOS:
+# - MONGODB_URI debe estar configurada en .env o environment
+# - La URI debe apuntar a MongoDB Atlas (mongodb+srv://)
+#
+# USO LOCAL (desarrollo):
+#   docker-compose up --build
+#
+# USO AWS ECS:
+#   Este archivo define la estructura. Las variables se inyectan via
+#   AWS Secrets Manager en el task definition de ECS.
+# ============================================================================
+# Load environment variables from .env file
+# IMPORTANT: Never commit .env to Git! Add to .gitignore
+
+services:
+  # ============================================================================
+  # REDIS - COMENTADO (Opcional para AWS)
+  # ============================================================================
+  # Descomentar si necesitas Redis en producción (~$12-15/mes adicionales)
+  # Para Free Tier, la app funciona sin caché (localhost fallback)
+  #
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: franchises-redis
+  #   ports:
+  #     - "${REDIS_PORT:-6379}:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 5
+  #   networks:
+  #     - franchises-network
+
+  # ============================================================================
+  # API APPLICATION - Spring Boot + MongoDB Atlas
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: franchises-api
+    env_file: .env
+    environment:
+      # ------------------------------------------------------------------------
+      # SPRING PROFILE - PRODUCTION (AWS)
+      # ------------------------------------------------------------------------
+      # Usa: application-prod.yml (MongoDB Atlas, logs INFO, sin fallback)
+      SPRING_PROFILES_ACTIVE: prod
+
+      # ------------------------------------------------------------------------
+      # MONGODB ATLAS CONNECTION (REQUIRED - NO FALLBACK IN PROD)
+      # ------------------------------------------------------------------------
+      # Format: mongodb+srv://user:password@cluster.mongodb.net/database?options
+      # Esta variable se inyecta desde AWS Secrets Manager en ECS
+      # En local testing, se define en archivo .env
+      MONGODB_URI: ${MONGODB_URI}
+
+      # ------------------------------------------------------------------------
+      # REDIS CONFIGURATION (OPTIONAL - Free Tier sin Redis)
+      # ------------------------------------------------------------------------
+      # Si no está configurado, usa localhost (no funcional pero no rompe)
+      REDIS_HOST: ${REDIS_HOST:-localhost}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+
+      # ------------------------------------------------------------------------
+      # SECURITY CONFIGURATION (REQUIRED - NO FALLBACK IN PROD)
+      # ------------------------------------------------------------------------
+      # JWT_SECRET: REQUERIDO - Sin fallback (definido en Secrets Manager)
+      JWT_SECRET: ${JWT_SECRET}
+      # JWT_EXPIRATION y JWT_REFRESH_EXPIRATION son fijos en application-prod.yml
+
+      # ------------------------------------------------------------------------
+      # FEATURE FLAGS (opcional, defaults en application-prod.yml)
+      # ------------------------------------------------------------------------
+      # ENABLE_CACHE: false (Free Tier)
+      # ENABLE_METRICS: true
+
+    ports:
+      - "8080:8080"
+
+    # No healthcheck en docker-compose (ya está en Dockerfile)
+    # El healthcheck del ALB en AWS usa /actuator/health
+
+    networks:
+      - franchises-network
+
+    restart: unless-stopped
+
+    # AWS ECS usa Fargate (serverless), no necesita depends_on
+    # porque MongoDB está fuera de este stack (Atlas)
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+# Nota: En AWS Fargate, los volúmenes son efímeros (temporales)
+# Para datos persistentes, usar EFS (NAS) o S3
+
+networks:
+  franchises-network:
+    driver: bridge

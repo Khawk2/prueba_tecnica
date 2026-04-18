@@ -1,0 +1,75 @@
+# ============================================================================
+# SPRING PROFILE: PROD (AWS ECS Production)
+# ============================================================================
+# CONFIGURACIÓN INMUTABLE - @ConfigurationProperties
+#
+# PRINCIPIO: La infraestructura (Terraform + ECS) define TODO el entorno.
+# El backend solo consume configuración validada.
+#
+# REQUISITOS OBLIGATORIOS (sin estos la app NO inicia):
+#   1. MONGODB_URI    - Desde AWS Secrets Manager
+#   2. JWT_SECRET     - Desde AWS Secrets Manager
+#
+# FAIL-FAST: @Validated + @NotBlank causan fallo inmediato si falta config.
+# ============================================================================
+
+spring:
+  # Spring Boot 3 format: all datastores under spring.data
+  data:
+    # MongoDB Atlas - REQUERIDO (@NotBlank en MongoProperties)
+    mongodb:
+      uri: ${MONGODB_URI}  # REQUERIDO - No fallback
+      connection-pool:
+        min-size: 2
+        max-size: 10
+        max-wait-time: 2000
+    # Redis - Config present (disabled via app.features.redis=false)
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 100ms
+
+  # JWT - REQUERIDO (@NotBlank en JwtProperties)
+  security:
+    jwt:
+      secret: ${JWT_SECRET}  # REQUERIDO - No fallback
+      expiration: 900000      # 15 minutos (fijo)
+      refresh-expiration: 604800000  # 7 días (fijo)
+
+# App Properties (inmutables)
+app:
+  profile: prod
+  features:
+    redis: false      # Explícitamente deshabilitado
+    cache: false      # Sin Redis = sin caché
+    metrics: true     # CloudWatch habilitado
+  server:
+    port: 8080
+
+# Logging
+logging:
+  level:
+    root: WARN
+    com.nequi: INFO
+
+# Server
+server:
+  port: 8080
+  error:
+    include-message: never
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    export:
+      cloudwatch:
+        enabled: true
+        namespace: franchises-api
+        step: 60
