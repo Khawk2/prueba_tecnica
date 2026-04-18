@@ -249,6 +249,7 @@ La infraestructura está desplegada en AWS usando Terraform y se encuentra activ
 | **VPC** | 10.0.0.0/16 con 2 subnets públicas | Activo |
 | **ECS Cluster** | franchises-api (Fargate) | Activo |
 | **ALB** | franchises-api-1585613032.us-east-1.elb.amazonaws.com | Activo |
+| **Security Groups** | ALB (HTTP 80 desde internet) + ECS Tasks (8080 desde ALB) | Activo |
 | **ECR** | Repositorio de imágenes Docker | Activo |
 | **Secrets Manager** | MongoDB URI + App Config | Activo |
 | **CloudWatch** | Logs y métricas del servicio | Activo |
@@ -267,10 +268,12 @@ terraform apply
 
 **Provisiona:**
 - VPC con subnets públicas (2 AZs para ALB)
+- Security Groups (ALB: HTTP 80 desde internet, ECS Tasks: puerto 8080 desde ALB)
 - ECS Fargate para contenedores
 - Application Load Balancer (HTTP)
 - ECR Repository con scan on push
 - Secrets Manager para credenciales
+- IAM Execution Role con permisos de Secrets Manager (GetSecretValue)
 - CloudWatch Logs (retención 14 días)
 - S3 Bucket para ALB access logs
 - Auto Scaling (1-2 tareas por CPU/Memory)
