@@ -35,6 +35,7 @@ http://franchises-api-1585613032.us-east-1.elb.amazonaws.com
 ```
 
 **Endpoints principales en producción:**
+- **📘 Swagger UI (Documentación Interactiva):** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/swagger-ui.html`
 - Health Check: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/actuator/health`
 - API Base: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/api/v1`
 - Franquicias: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/api/v1/franchises`
@@ -49,6 +50,7 @@ http://franchises-api-1585613032.us-east-1.elb.amazonaws.com
 | **Base de Datos** | MongoDB 6.0 + Reactive Driver |
 | **Cache** | Redis (Rate Limiting) |
 | **Seguridad** | Autenticación JWT |
+| **Documentación** | Swagger UI (OpenAPI 3) |
 | **Resiliencia** | Circuit Breaker con Resilience4j |
 | **Testing** | JUnit 5, Mockito, Testcontainers |
 | **Contenedor** | Docker + Docker Compose |
@@ -107,6 +109,38 @@ docker-compose up -d
 API disponible en: `http://localhost:8080`
 
 **Producción (AWS):** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com`
+
+---
+
+## 🔐 Autenticación & Usuario de Prueba
+
+La API usa **JWT (JSON Web Tokens)** para autenticación stateless.
+
+### Usuario de Prueba (Demo)
+
+Para facilitar las pruebas, la aplicación crea automáticamente un usuario de prueba al iniciar:
+
+| Campo | Valor |
+|-------|-------|
+| **Username** | `test` |
+| **Password** | `test123` |
+| **Roles** | USER, ADMIN |
+
+### Cómo Probar la API en Swagger UI
+
+1. **Abrir Swagger UI:** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/swagger-ui.html`
+
+2. **Hacer Login:**
+   - Ir al endpoint `POST /api/v1/auth/login`
+   - Usar el body: `{"username":"test","password":"test123"}`
+   - Ejecutar y copiar el `accessToken` de la respuesta
+
+3. **Autorizar en Swagger:**
+   - Click en el botón **Authorize** (🔓 verde, arriba a la derecha)
+   - Pegar: `Bearer TU_TOKEN_AQUI` (ej: `Bearer eyJhbG...`)
+   - Click **Authorize**
+
+4. **Probar Endpoints:** Ahora todos los endpoints protegidos funcionan con tu token
 
 ---
 
@@ -255,6 +289,7 @@ La infraestructura está desplegada en AWS usando Terraform y se encuentra activ
 | **CloudWatch** | Logs y métricas del servicio | Activo |
 | **S3** | Logs del ALB | Activo |
 | **Auto Scaling** | CPU/Memory target tracking | Activo |
+| **Swagger UI** | Documentación interactiva API | Activo |
 
 **URL de acceso:** http://franchises-api-1585613032.us-east-1.elb.amazonaws.com
 
@@ -280,6 +315,12 @@ terraform apply
 - SNS Topic para alertas
 - IAM Roles para ECS task execution y task role
 
+### Documentación API (Swagger/OpenAPI)
+- **Swagger UI:** Interfaz web interactiva para probar endpoints
+- **OpenAPI Spec:** `/v3/api-docs` (JSON/YAML)
+- **SpringDoc:** Integración automática con anotaciones Spring
+- Autenticación JWT integrada en UI (botón Authorize)
+
 ### Soporte Docker
 - Dockerfile multi-stage
 - Docker Compose para desarrollo local
@@ -293,4 +334,4 @@ Prueba Técnica Backend Developer - API reactiva demostrando Clean Architecture,
 
 ---
 
-*Desarrollado con Spring Boot 3.2.4, Java 17 y prácticas modernas de desarrollo backend.*
+*Desarrollado con Spring Boot 3.2.4, Java 17, Swagger/OpenAPI 3 y prácticas modernas de desarrollo backend.*
