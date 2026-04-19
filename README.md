@@ -35,7 +35,8 @@ http://franchises-api-1585613032.us-east-1.elb.amazonaws.com
 ```
 
 **Endpoints principales en producción:**
-- **📘 Swagger UI (Documentación Interactiva):** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/swagger-ui.html`
+- **📘 Swagger UI (Documentación Interactiva):** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/webjars/swagger-ui/index.html`
+- API Docs (JSON): `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/v3/api-docs`
 - Health Check: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/actuator/health`
 - API Base: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/api/v1`
 - Franquicias: `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/api/v1/franchises`
@@ -128,7 +129,7 @@ Para facilitar las pruebas, la aplicación crea automáticamente un usuario de p
 
 ### Cómo Probar la API en Swagger UI
 
-1. **Abrir Swagger UI:** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/swagger-ui.html`
+1. **Abrir Swagger UI:** `http://franchises-api-1585613032.us-east-1.elb.amazonaws.com/webjars/swagger-ui/index.html`
 
 2. **Hacer Login:**
    - Ir al endpoint `POST /api/v1/auth/login`
@@ -317,8 +318,11 @@ terraform apply
 
 ### Documentación API (Swagger/OpenAPI)
 - **Swagger UI:** Interfaz web interactiva para probar endpoints
+  - URL: `/webjars/swagger-ui/index.html`
 - **OpenAPI Spec:** `/v3/api-docs` (JSON/YAML)
 - **SpringDoc:** Integración automática con anotaciones Spring
+- **Configuración de Servidor:** URL dinámica basada en entorno (local/AWS)
+- **Usuario de Prueba:** Se crea automáticamente al iniciar la aplicación
 - Autenticación JWT integrada en UI (botón Authorize)
 
 ### Soporte Docker
@@ -331,6 +335,21 @@ terraform apply
 ## Autor
 
 Prueba Técnica Backend Developer - API reactiva demostrando Clean Architecture, WebFlux, MongoDB y capacidades de despliegue en la nube.
+
+---
+
+**Características Implementadas:**
+- ✅ Clean Architecture con Domain-Driven Design
+- ✅ Spring WebFlux (programación reactiva)
+- ✅ MongoDB Atlas con driver reactivo
+- ✅ JWT Authentication + Refresh Tokens
+- ✅ Swagger/OpenAPI 3 con SpringDoc
+- ✅ Usuario de prueba automático (test/test123)
+- ✅ Circuit Breaker (Resilience4j)
+- ✅ Rate Limiting distribuido (Redis - opcional)
+- ✅ AWS ECS Fargate deployment
+- ✅ Terraform Infrastructure as Code
+- ✅ Health checks y métricas (Actuator + CloudWatch)
 
 ---
 
