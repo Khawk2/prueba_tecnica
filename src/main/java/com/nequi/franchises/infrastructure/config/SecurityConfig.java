@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .pathMatchers("/api/v1/auth/**").permitAll()
                         .pathMatchers("/actuator/health", "/actuator/info").permitAll()
                         // Swagger/OpenAPI - Público para documentación y pruebas
-                        .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
+                        .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/swagger-ui", "/v3/api-docs/**", "/webjars/**", "/error").permitAll()
                         
                         // Admin endpoints
                         .pathMatchers("/api/v1/admin/**").hasRole("ADMIN")

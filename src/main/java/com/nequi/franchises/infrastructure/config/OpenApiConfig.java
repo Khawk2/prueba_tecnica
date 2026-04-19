@@ -71,16 +71,9 @@ import org.springframework.context.annotation.Configuration;
                         url = "https://opensource.org/licenses/MIT"
                 )
         ),
-        servers = {
-                @Server(
-                        url = "http://localhost:8080",
-                        description = "Local Development"
-                ),
-                @Server(
-                        url = "http://franchises-api-1585613032.us-east-1.elb.amazonaws.com",
-                        description = "AWS Production (ECS Fargate)"
-                )
-        },
+        // Servers auto-detected from incoming request by springdoc.
+        // When accessed from AWS ALB, Swagger uses the ALB URL.
+        // When accessed locally, Swagger uses localhost.
         security = @SecurityRequirement(name = "bearerAuth"),
         tags = {
                 @Tag(name = "Authentication", description = "Login, logout y refresh tokens"),

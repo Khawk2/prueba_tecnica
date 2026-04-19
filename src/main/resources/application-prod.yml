@@ -45,6 +45,8 @@ app:
     metrics: true     # CloudWatch habilitado
   server:
     port: 8080
+    # URL for Swagger UI - must match the ALB DNS
+    url: http://franchises-api-1585613032.us-east-1.elb.amazonaws.com
 
 # Logging
 logging:

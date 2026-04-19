@@ -53,6 +53,20 @@ management:
     tags:
       application: ${spring.application.name}
 
+# SpringDoc OpenAPI - Swagger UI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+  # Auto-detect server URL from incoming request (fixes AWS ALB URL issue)
+  # When accessed through ALB, Swagger will use the ALB URL instead of localhost
+
 # Resilience4j
 resilience4j:
   circuitbreaker:
